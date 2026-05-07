@@ -53,6 +53,10 @@ const state = {
   lastUpdated: new Date(),
 }
 
+const AUTO_REFRESH_MS = 1
+let autoRefreshHandle: number | undefined
+let renderQueued = false
+
 const marketStrip: MarketItem[] = [
   { symbol: 'SPX', label: 'S&P 500', price: 6731.44, change: 0.42 },
   { symbol: 'NDX', label: 'Nasdaq 100', price: 24691.12, change: 0.68 },
@@ -264,6 +268,25 @@ function signed(value: number, digits = 2) {
   return `${value >= 0 ? '+' : ''}${value.toFixed(digits)}`
 }
 
+function formatTimestamp(date: Date) {
+  const datePart = date.toLocaleDateString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+  })
+  const timePart = date.toLocaleTimeString('en-IN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  })
+  const milliseconds = date.getMilliseconds().toString().padStart(3, '0')
+
+  return `${datePart}, ${timePart}.${milliseconds}`
+}
+
+function liveStatusText() {
+  return `Auto ${AUTO_REFRESH_MS}ms / Tick ${state.refreshCount.toLocaleString('en-US')} / Updated ${formatTimestamp(state.lastUpdated)}`
+}
+
 function escapeAttribute(value: string) {
   return value
     .replaceAll('&', '&amp;')
@@ -407,6 +430,42 @@ function confidenceBars() {
     .join('')
 }
 
+function refreshSnapshot() {
+  state.refreshCount += 1
+  state.lastUpdated = new Date()
+}
+
+function renderLiveData() {
+  const ticker = document.querySelector<HTMLElement>('.ticker-strip')
+  const chart = document.querySelector<SVGElement>('.main-chart')
+  const watchRows = document.querySelector<HTMLTableSectionElement>('.watch-panel tbody')
+  const timestamp = document.querySelector<HTMLElement>('.timestamp')
+
+  if (ticker) ticker.innerHTML = marketTicker()
+  if (chart) chart.outerHTML = mainChart()
+  if (watchRows) watchRows.innerHTML = watchlistRows()
+  if (timestamp) timestamp.textContent = liveStatusText()
+}
+
+function queueRender() {
+  if (renderQueued) return
+
+  renderQueued = true
+  window.requestAnimationFrame(() => {
+    renderQueued = false
+    renderLiveData()
+  })
+}
+
+function startAutoRefresh() {
+  if (autoRefreshHandle !== undefined) return
+
+  autoRefreshHandle = window.setInterval(() => {
+    refreshSnapshot()
+    queueRender()
+  }, AUTO_REFRESH_MS)
+}
+
 function marketTicker() {
   return marketStrip
     .map((item, index) => {
@@ -514,13 +573,16 @@ function sortLabel(key: SortKey) {
 
 function render() {
   const summary = lensSummaries[state.lens]
-  const time = state.lastUpdated.toLocaleString('en-IN', {
-    hour: '2-digit',
-    minute: '2-digit',
-    day: '2-digit',
-    month: 'short',
-    timeZoneName: 'short',
-  })
+  const activeSearchInput =
+    document.activeElement instanceof HTMLInputElement && document.activeElement.id === 'searchInput'
+      ? document.activeElement
+      : null
+  const searchSelection = activeSearchInput
+    ? {
+        start: activeSearchInput.selectionStart ?? activeSearchInput.value.length,
+        end: activeSearchInput.selectionEnd ?? activeSearchInput.value.length,
+      }
+    : null
 
   appRoot.innerHTML = `
     <header class="topbar">
@@ -568,7 +630,7 @@ function render() {
           <span style="background:${summary.color}"></span>
           ${summary.regime} / ${summary.conviction}
         </div>
-        <div class="timestamp">Updated ${time}</div>
+        <div class="timestamp">${liveStatusText()}</div>
       </section>
 
       <section class="grid-layout">
@@ -729,6 +791,12 @@ function render() {
   })
 
   bindEvents()
+
+  if (searchSelection) {
+    const nextInput = document.querySelector<HTMLInputElement>('#searchInput')
+    nextInput?.focus({ preventScroll: true })
+    nextInput?.setSelectionRange(searchSelection.start, searchSelection.end)
+  }
 }
 
 function bindEvents() {
@@ -770,8 +838,7 @@ function bindEvents() {
   })
 
   document.querySelector<HTMLButtonElement>('#refreshButton')?.addEventListener('click', () => {
-    state.refreshCount += 1
-    state.lastUpdated = new Date()
+    refreshSnapshot()
     render()
   })
 
@@ -800,3 +867,4 @@ function exportWatchlist() {
 }
 
 render()
+startAutoRefresh()

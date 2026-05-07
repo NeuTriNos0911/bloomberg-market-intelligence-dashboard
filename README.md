@@ -4,11 +4,11 @@ An independent Bloomberg-style market intelligence dashboard demo built with Vit
 
 ## Live Demo
 
-[Open the latest fixed dashboard](https://neutrinos0911.github.io/bloomberg-market-intelligence-dashboard/?v=ffa2d9a)
+[Open the live auto-refresh dashboard](https://neutrinos0911.github.io/bloomberg-market-intelligence-dashboard/?v=live-refresh-1ms)
 
 ## Features
 
-- Cross-asset ticker strip with refreshable demo values
+- Cross-asset ticker strip with a 1ms live auto-refresh data tick
 - Lens controls for global markets, equities, rates, and commodities
 - SVG performance chart with range switching
 - Sortable institutional watchlist with search and CSV export
