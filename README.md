@@ -4,7 +4,7 @@ An independent Bloomberg-style market intelligence dashboard demo built with Vit
 
 ## Live Demo
 
-[Open the dashboard](https://neutrinos0911.github.io/bloomberg-market-intelligence-dashboard/)
+[Open the latest fixed dashboard](https://neutrinos0911.github.io/bloomberg-market-intelligence-dashboard/?v=ffa2d9a)
 
 ## Features
 
