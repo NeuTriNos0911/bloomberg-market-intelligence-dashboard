@@ -2,6 +2,10 @@
 
 An independent Bloomberg-style market intelligence dashboard demo built with Vite, TypeScript, and synthetic market data.
 
+## Live Demo
+
+[Open the dashboard](https://neutrinos0911.github.io/bloomberg-market-intelligence-dashboard/)
+
 ## Features
 
 - Cross-asset ticker strip with refreshable demo values
