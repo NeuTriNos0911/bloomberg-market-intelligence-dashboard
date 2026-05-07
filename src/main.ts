@@ -53,7 +53,7 @@ const state = {
   lastUpdated: new Date(),
 }
 
-const AUTO_REFRESH_MS = 1
+const AUTO_REFRESH_MS = 1000
 let autoRefreshHandle: number | undefined
 let renderQueued = false
 
@@ -284,7 +284,7 @@ function formatTimestamp(date: Date) {
 }
 
 function liveStatusText() {
-  return `Auto ${AUTO_REFRESH_MS}ms / Tick ${state.refreshCount.toLocaleString('en-US')} / Updated ${formatTimestamp(state.lastUpdated)}`
+  return `Auto 1s / Tick ${state.refreshCount.toLocaleString('en-US')} / Updated ${formatTimestamp(state.lastUpdated)}`
 }
 
 function escapeAttribute(value: string) {
