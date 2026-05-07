@@ -264,6 +264,14 @@ function signed(value: number, digits = 2) {
   return `${value >= 0 ? '+' : ''}${value.toFixed(digits)}`
 }
 
+function escapeAttribute(value: string) {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('"', '&quot;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+}
+
 function formatPrice(item: MarketItem | WatchItem) {
   const unit = 'unit' in item ? item.unit : undefined
   if (unit === '%') return `${item.price.toFixed(2)}%`
@@ -526,7 +534,7 @@ function render() {
       <div class="top-actions">
         <label class="search-box" aria-label="Search instruments">
           <i data-lucide="search"></i>
-          <input id="searchInput" type="search" placeholder="Search symbol, sector, signal" value="${state.query}" />
+          <input id="searchInput" type="search" placeholder="Search symbol, sector, signal" value="${escapeAttribute(state.query)}" />
         </label>
         <button id="refreshButton" class="icon-button" type="button" title="Refresh snapshot">
           <i data-lucide="refresh-cw"></i>
@@ -752,9 +760,13 @@ function bindEvents() {
   })
 
   document.querySelector<HTMLInputElement>('#searchInput')?.addEventListener('input', (event) => {
-    state.query = (event.target as HTMLInputElement).value
+    const input = event.target as HTMLInputElement
+    const caret = input.selectionStart ?? input.value.length
+    state.query = input.value
     render()
-    document.querySelector<HTMLInputElement>('#searchInput')?.focus()
+    const nextInput = document.querySelector<HTMLInputElement>('#searchInput')
+    nextInput?.focus()
+    nextInput?.setSelectionRange(caret, caret)
   })
 
   document.querySelector<HTMLButtonElement>('#refreshButton')?.addEventListener('click', () => {
